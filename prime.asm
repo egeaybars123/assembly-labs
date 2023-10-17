@@ -5,10 +5,10 @@ mov	DPTR, #input_str
 ;use R6 to store the sum of the input.
 
 DATA_LOOP:
+	clr	A
 	movc	A, @A+dptr
 	jz	keyboard_loop
 	acall	SEND_DATA
-	clr	A
 	inc	dptr
 	sjmp	DATA_LOOP
 
