@@ -35,7 +35,7 @@ CHECK_40H:
 	sjmp	STORE_INPUT
 
 CONVERT_TO_NUM:
-	clr C
+	clr	C
 	subb	A, #30h
 
 STORE_INPUT:
@@ -56,7 +56,7 @@ DPTR_SET:
 PRIME_ITERATOR:
 	clr	A
 	movc	A, @A+DPTR
-	mov 	R7, A
+	mov	R7, A
 	mov	B, A
 	mov	A, R6		;making sure A/B.
 	div	AB		;if remainder(B) is not 0, move to the next line, but if 0, iterate with the same prime number.
@@ -68,7 +68,7 @@ PRIME_ITERATOR:
 
 CONVERT_TO_ASCII:
 	clr	C		; Clear the Carry Flag
-	mov 	A, R7
+	mov	A, R7
 	subb	A, #0AH		;Subtract 0AH from A
 	jc	NUM		; When a carry is present, A is numeric
 	add	A, #41H		;Add 41H for Alphabet
@@ -79,10 +79,11 @@ NUM:
 	add	A, #30H		; Add 30H with A to get ASCII
 
 STORE:
-	;MOV R0,#30H; Point the destination location
 	acall	send_data	; Store A content to the memory location pointed by R0
 	mov	A, #','
+	acall	send_data
 	pop	ACC
+	mov	R6, A
 	cjne	A, #1, PRIME_ITERATOR
 	ljmp	DONE
 
@@ -211,5 +212,4 @@ DONE:
 	mov	A, #')'
 	acall	send_data
 	END
-
 
