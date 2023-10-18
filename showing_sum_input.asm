@@ -1,56 +1,49 @@
 	ORG	0
-	acall	CONFIGURE_LCD
+	;acall	CONFIGURE_LCD
 	mov	DPTR, #input_str
 ;use R5 to store the multiplier count.
 ;use R6 to store the sum of the input.
 
-DATA_LOOP:
-	clr	A
-	movc	A, @A+dptr
-	jz	keyboard_loop
-	acall	SEND_DATA
-	inc	dptr
-	sjmp	DATA_LOOP
-
-KEYBOARD_LOOP:
-	acall	KEYBOARD
-	acall	send_data
-	cjne	A, #'A', CONVERT_TO_HEX
-	sjmp	CHECK_A
-	;sjmp	KEYBOARD_LOOP
+;DATA_LOOP:
+;	clr	A
+;	movc	A, @A+dptr
+;	jz	keyboard_loop
+;	acall	SEND_DATA
+;	inc	dptr
+;	sjmp	DATA_LOOP
 
 CHECK_A:
-	mov	A, #0C0h
-	acall	send_command	; force cursor to the second line of the LCD
-	mov	A, #'('
-	acall	send_data
+	mov R6, #0BEh
 	sjmp	DPTR_SET
 
-CONVERT_TO_HEX:
-	cjne	A, #40h, CHECK_40H
+;CONVERT_TO_HEX:
+;	cjne	A, #40h, CHECK_40H
+;
+;CHECK_40H:
+;	jc	CONVERT_TO_NUM
+;	subb	A, #37h
+;	sjmp	STORE_INPUT
+;
+;CONVERT_TO_NUM:
+;	subb	A, #30h
 
-CHECK_40H:
-	jc	CONVERT_TO_NUM
-	subb	A, #37h
-	sjmp	STORE_INPUT
-
-CONVERT_TO_NUM:
-	subb	A, #30h
-
-STORE_INPUT:
-	mov	B, R5
-	push	ACC
-	mov	DPTR, #DECIMALS
-	mov	A, R5
-	movc	A, @A+DPTR
-	pop	B
-	mul	AB
-	add	A, R6
-	mov	R6, A
-	inc	R5
-	sjmp	keyboard_loop
+;STORE_INPUT:
+;	mov	B, R5
+;	push	ACC
+;	mov	DPTR, #DECIMALS
+;	mov	A, R5
+;	movc	A, @A+DPTR
+;	pop	B
+;	mul	AB
+;	add	A, R6
+;	mov	R6, A
+;	inc	R5
+;	sjmp	keyboard_loop
 
 DPTR_SET:
+	;mov A, R6
+	;add A, #56
+	;mov R6, A
 	mov	DPTR, #prime_numbers
 PRIME_ITERATOR:
 	clr	A
@@ -60,28 +53,33 @@ PRIME_ITERATOR:
 	div	AB		;if remainder(B) is not 0, move to the next line, but if 0, iterate with the same prime number.
 	push	ACC
 	mov	A, B
-	JZ	CONVERT_TO_ASCII	;if Remainder is zero
+	JZ	WRITE_TO_REG_TEST	;if Remainder is zero
 	inc	DPTR
 	sjmp	PRIME_ITERATOR
 
-CONVERT_TO_ASCII:
-	clr	C		; Clear the Carry Flag
-	subb	A, #0AH		;Subtract 0AH from A
-	jc	NUM		; When a carry is present, A is numeric
-	add	A, #41H		;Add 41H for Alphabet
-	sjmp	STORE		; Jump to store the value
-
-NUM:
-	mov	A, R0		; Copy R0 to A
-	add	A, #30H		; Add 30H with A to get ASCII
-
-STORE:
-	;MOV R0,#30H; Point the destination location
-	acall	send_data	; Store A content to the memory location pointed by R0
-	mov	A, #','
-	pop	ACC
-	cjne	A, #1, PRIME_ITERATOR
-	ljmp	DONE
+WRITE_TO_REG_TEST:
+	pop B
+	mov R6, B
+	sjmp prime_iterator
+;CONVERT_TO_ASCII:
+;	clr	C		; Clear the Carry Flag
+;	subb	A, #0AH		;Subtract 0AH from A
+;	jc	NUM		; When a carry is present, A is numeric
+;	add	A, #41H		;Add 41H for Alphabet
+;	sjmp	STORE		; Jump to store the value
+;
+;NUM:
+;	mov	A, R0		; Copy R0 to A
+;	add	A, #30H		; Add 30H with A to get ASCII
+;
+;STORE:
+;	;MOV R0,#30H; Point the destination location
+;	acall	send_data	; Store A content to the memory location pointed by R0
+;	mov	A, #','
+;	pop	ACC
+;	cjne	A, #1, PRIME_ITERATOR
+;	mov	A, #')'
+;	acall	send_data
 
 
 PRIME_NUMBERS:	DB	2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251
@@ -204,8 +202,8 @@ KCODE1:	DB	'4', '5', '6', 'B'
 KCODE2:	DB	'7', '8', '9', 'C'
 KCODE3:	DB	'*', '0', '#', 'D'
 
-DONE:
-	mov	A, #')'
-	acall	send_data
-	END
+
+END
+
+
 

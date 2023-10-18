@@ -13,6 +13,7 @@ DATA_LOOP:
 	sjmp	DATA_LOOP
 
 KEYBOARD_LOOP:
+	clr A
 	acall	KEYBOARD
 	acall	send_data
 	cjne	A, #'A', CONVERT_TO_HEX
@@ -24,9 +25,10 @@ CHECK_A:
 	acall	send_command	; force cursor to the second line of the LCD
 	mov	A, #'('
 	acall	send_data
-	sjmp	DPTR_SET
+	sjmp	SHOW_NUMBER_TEST
 
 CONVERT_TO_HEX:
+	clr C
 	cjne	A, #40h, CHECK_40H
 
 CHECK_40H:
@@ -50,19 +52,26 @@ STORE_INPUT:
 	inc	R5
 	sjmp	keyboard_loop
 
-DPTR_SET:
-	mov	DPTR, #prime_numbers
-PRIME_ITERATOR:
-	clr	A
-	movc	A, @A+DPTR
-	mov	B, A
-	mov	A, R6		;making sure A/B.
-	div	AB		;if remainder(B) is not 0, move to the next line, but if 0, iterate with the same prime number.
-	push	ACC
-	mov	A, B
-	JZ	CONVERT_TO_ASCII	;if Remainder is zero
-	inc	DPTR
-	sjmp	PRIME_ITERATOR
+SHOW_NUMBER_TEST:
+	mov A, R6
+	add A, #56
+	;acall send_data
+
+;
+;DPTR_SET:
+;	mov	DPTR, #prime_numbers
+;PRIME_ITERATOR:
+;	clr	A
+;	movc	A, @A+DPTR
+;	mov	B, A
+;	mov	A, R6		;making sure A/B.
+;	div	AB		;if remainder(B) is not 0, move to the next line, but if 0, iterate with the same prime number.
+;	push	ACC
+;	mov	A, B
+;	JZ	CONVERT_TO_ASCII	;if Remainder is zero
+;	inc	DPTR
+;	sjmp	PRIME_ITERATOR
+
 
 CONVERT_TO_ASCII:
 	clr	C		; Clear the Carry Flag
@@ -72,15 +81,14 @@ CONVERT_TO_ASCII:
 	sjmp	STORE		; Jump to store the value
 
 NUM:
-	mov	A, R0		; Copy R0 to A
+	mov A, R6
 	add	A, #30H		; Add 30H with A to get ASCII
 
 STORE:
-	;MOV R0,#30H; Point the destination location
 	acall	send_data	; Store A content to the memory location pointed by R0
 	mov	A, #','
-	pop	ACC
-	cjne	A, #1, PRIME_ITERATOR
+	;pop	ACC
+	;cjne	A, #1, PRIME_ITERATOR
 	ljmp	DONE
 
 
@@ -205,6 +213,7 @@ KCODE2:	DB	'7', '8', '9', 'C'
 KCODE3:	DB	'*', '0', '#', 'D'
 
 DONE:
+	acall send_data
 	mov	A, #')'
 	acall	send_data
 	END
