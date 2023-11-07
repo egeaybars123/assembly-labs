@@ -1,8 +1,8 @@
 org 0000h
 
 WAIT_RECEIVE: mov TMOD, #20h; timer-1, mode-2, 1200 bps
-mov TH1, #230
-mov TL1, #230
+mov TH1, #243
+mov TL1, #243
 mov SCON, #01010000B ; mode-1 (8-bit UART with data framing), variable baud rate - receiver enabled
 mov R1, #7 ;used for going through all the notes.
 setb TR1
