@@ -69,7 +69,7 @@ sjmp RELOAD
 
 DECREMENT: clr TF1
 djnz R2, DELAY500MS
-cjne R1, #0, RESTART
+cjne R1, #255, RESTART
 clr TR1
 clr TR0
 sjmp WAIT_RECEIVE
